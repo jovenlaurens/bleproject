@@ -20,7 +20,7 @@ class DataViewModel @Inject constructor( private val dataReceiveManager: DataRec
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    var bluetoothData by mutableStateOf(0f)
+    var bluetoothData by mutableStateOf(ByteArray(0))
         private set
 
     var connectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
