@@ -112,19 +112,9 @@ class DataBLEReceiveManager @Inject constructor(
             with(gatt) {
                 printGattTable()
                 coroutineScope.launch {
-                    // Emit a loading message
                     data.emit(Resource.Loading(message = "Adjusting MTU Space..."))
-
-                    // Request MTU change (this is non-blocking)
-                    gatt.requestMtu(517)
-
-                    // Wait for 4 seconds before doing the next task
-                    delay(4000)
-
-                    // Now you can perform further actions after the 4-second delay
-                    // Emit a success message, request more data, or proceed with other tasks
-                    data.emit(Resource.Loading(message = "MTU adjusted, proceeding with next steps..."))
                 }
+                gatt.requestMtu(517)
             }
         }
 
@@ -156,6 +146,7 @@ class DataBLEReceiveManager @Inject constructor(
                             data.emit(
                                 Resource.Success(data = dataResult)
                             )
+                            delay(4000)
                         }
                     }
                     else -> Unit
