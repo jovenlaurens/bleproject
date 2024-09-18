@@ -11,6 +11,8 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.example.bletutorial.data.ConnectionState
 import com.example.bletutorial.data.DataReceiveManager
@@ -18,7 +20,6 @@ import com.example.bletutorial.data.DataResult
 import com.example.bletutorial.util.Resource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -110,36 +111,14 @@ class DataBLEReceiveManager @Inject constructor(
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             with(gatt) {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    printGattTable()
-
-                    // Use a coroutine to introduce a 4-second delay before requesting MTU
+                printGattTable()
+                Handler(Looper.getMainLooper()).postDelayed({
                     coroutineScope.launch {
-                        // Emit a message before the delay
-                        data.emit(Resource.Loading(message = "Waiting to adjust MTU..."))
-
-                        // Introduce a 4-second delay before requesting MTU
-                        delay(4000)
-
-                        // Emit a message before requesting MTU
-                        data.emit(Resource.Loading(message = "Requesting MTU change..."))
-
-                        // Now request MTU change
-                        val mtuRequestResult = gatt.requestMtu(517)
-
-                        // Log the MTU request result
-                        if (mtuRequestResult) {
-                            data.emit(Resource.Loading(message = "MTU request initiated, waiting for response..."))
-                        } else {
-                            data.emit(Resource.Error(errorMessage = "MTU request failed to initiate"))
-                        }
+                        data.emit(Resource.Loading(message = "Adjusting MTU Space..."))
+                        gatt.requestMtu(517)
                     }
-                } else {
-                    // Handle service discovery failure
-                    coroutineScope.launch {
-                        data.emit(Resource.Error(errorMessage = "Service discovery failed"))
-                    }
-                }
+                }, 4000);
+
             }
         }
 
