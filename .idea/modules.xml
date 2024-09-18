@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/BLETutorial.iml" filepath="$PROJECT_DIR$/.idea/modules/BLETutorial.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BLETutorial.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BLETutorial.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BLETutorial.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BLETutorial.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BLETutorial.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BLETutorial.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/BLETutorial.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/BLETutorial.app.unitTest.iml" />
+    </modules>
+  </component>
+</project>
