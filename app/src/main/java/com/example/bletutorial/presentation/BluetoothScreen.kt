@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -150,7 +151,7 @@ fun BluetoothScreen(
                 ){
                     Text(
                         text = "Data: ${viewModel.bluetoothData.joinToString(", ") { byte -> byte.toInt().toString() }}",
-                        style = MaterialTheme.typography.h6
+                        style = MaterialTheme.typography.h6.copy(fontSize = 12.sp)
                     )
                 }
             }else if(bleConnectionState == ConnectionState.Disconnected){

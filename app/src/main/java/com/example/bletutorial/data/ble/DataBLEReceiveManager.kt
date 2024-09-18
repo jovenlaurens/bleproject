@@ -18,6 +18,7 @@ import com.example.bletutorial.data.DataResult
 import com.example.bletutorial.util.Resource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -107,25 +108,34 @@ class DataBLEReceiveManager @Inject constructor(
             }
         }
 
-        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            with(gatt) {
-                printGattTable()
-                coroutineScope.launch {
-                    data.emit(Resource.Loading(message = "Adjusting MTU Space..."))
+        private fun requestDataPeriodically(characteristic: BluetoothGattCharacteristic) {
+            coroutineScope.launch {
+                while (true) {
+                    // Request data from the characteristic
+                    readCharacteristic(characteristic)
+
+                    // Wait for 4 seconds before the next request
+                    delay(4000)
                 }
-                gatt.requestMtu(517)
             }
+        }
+
+        private fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
+            // Ensure the BluetoothGatt instance is available and valid
+            val gatt = this@DataBLEReceiveManager.gatt ?: return
+            gatt.readCharacteristic(characteristic)
         }
 
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
             val characteristic = findCharacteristics(DATA_SERVICE_UIID, DATA_CHARACTERISTICS_UUID)
             if (characteristic == null) {
                 coroutineScope.launch {
-                    data.emit(Resource.Error(errorMessage = "Could not find temp and humidity publisher"))
+                    data.emit(Resource.Error(errorMessage = "Could not find data publisher"))
                 }
                 return
             }
             enableNotification(characteristic)
+            requestDataPeriodically(characteristic)
         }
 
         override fun onCharacteristicChanged(
@@ -137,13 +147,13 @@ class DataBLEReceiveManager @Inject constructor(
                     UUID.fromString(DATA_CHARACTERISTICS_UUID) -> {
                         val rawData = value
 
-                        val tempHumidityResult = DataResult(
+                        val dataResult = DataResult(
                             rawData,
                             ConnectionState.Connected
                         )
                         coroutineScope.launch {
                             data.emit(
-                                Resource.Success(data = tempHumidityResult)
+                                Resource.Success(data = dataResult)
                             )
                         }
                     }
