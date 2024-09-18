@@ -149,7 +149,7 @@ fun BluetoothScreen(
                     verticalArrangement = Arrangement.Center
                 ){
                     Text(
-                        text = "Humidity: ${viewModel.bluetoothData}",
+                        text = "Data: ${viewModel.bluetoothData.joinToString(", ") { byte -> byte.toInt().toString() }}",
                         style = MaterialTheme.typography.h6
                     )
                 }
