@@ -108,22 +108,24 @@ class DataBLEReceiveManager @Inject constructor(
             }
         }
 
-        private fun requestDataPeriodically(characteristic: BluetoothGattCharacteristic) {
-            coroutineScope.launch {
-                while (true) {
-                    // Request data from the characteristic
-                    readCharacteristic(characteristic)
+        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+            with(gatt) {
+                printGattTable()
+                coroutineScope.launch {
+                    // Emit a loading message
+                    data.emit(Resource.Loading(message = "Adjusting MTU Space..."))
 
-                    // Wait for 4 seconds before the next request
+                    // Request MTU change (this is non-blocking)
+                    gatt.requestMtu(517)
+
+                    // Wait for 4 seconds before doing the next task
                     delay(4000)
+
+                    // Now you can perform further actions after the 4-second delay
+                    // Emit a success message, request more data, or proceed with other tasks
+                    data.emit(Resource.Loading(message = "MTU adjusted, proceeding with next steps..."))
                 }
             }
-        }
-
-        private fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
-            // Ensure the BluetoothGatt instance is available and valid
-            val gatt = this@DataBLEReceiveManager.gatt ?: return
-            gatt.readCharacteristic(characteristic)
         }
 
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
@@ -135,7 +137,6 @@ class DataBLEReceiveManager @Inject constructor(
                 return
             }
             enableNotification(characteristic)
-            requestDataPeriodically(characteristic)
         }
 
         override fun onCharacteristicChanged(
