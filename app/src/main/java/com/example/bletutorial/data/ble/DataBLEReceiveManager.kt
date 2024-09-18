@@ -20,7 +20,9 @@ import com.example.bletutorial.data.DataResult
 import com.example.bletutorial.util.Resource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -112,12 +114,10 @@ class DataBLEReceiveManager @Inject constructor(
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             with(gatt) {
                 printGattTable()
-                Handler(Looper.getMainLooper()).postDelayed({
-                    coroutineScope.launch {
-                        data.emit(Resource.Loading(message = "Adjusting MTU Space..."))
-                        gatt.requestMtu(517)
-                    }
-                }, 4000);
+                coroutineScope.launch {
+                    data.emit(Resource.Loading(message = "Adjusting MTU Space..."))
+                    gatt.requestMtu(517)
+                }
 
             }
         }
@@ -137,25 +137,32 @@ class DataBLEReceiveManager @Inject constructor(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
         ) {
-            with(characteristic){
-                when(uuid){
-                    UUID.fromString(DATA_CHARACTERISTICS_UUID) -> {
-                        val rawData = value
+            coroutineScope.launch {
+                try {
+                    when (characteristic.uuid) {
+                        UUID.fromString(DATA_CHARACTERISTICS_UUID) -> {
+                            val rawData = characteristic.value
 
-                        val dataResult = DataResult(
-                            rawData,
-                            ConnectionState.Connected
-                        )
-                        coroutineScope.launch {
-                            data.emit(
-                                Resource.Success(data = dataResult)
+                            // Simulating data processing
+                            val dataResult = DataResult(
+                                rawData,
+                                ConnectionState.Connected
                             )
+
+                            // Emit the dataResult every 4 seconds
+                            while (isActive) {
+                                data.emit(
+                                    Resource.Success(data = dataResult)
+                                )
+                                delay(4000L) // 4-second interval
+                            }
                         }
+                        else -> Unit
                     }
-                    else -> Unit
+                } catch (e: Exception) {
+                    data.emit(Resource.Error(errorMessage = "Error processing characteristic change"))
                 }
             }
-        }
     }
 
     private fun enableNotification(characteristic: BluetoothGattCharacteristic){
