@@ -110,11 +110,36 @@ class DataBLEReceiveManager @Inject constructor(
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             with(gatt) {
-                printGattTable()
-                coroutineScope.launch {
-                    data.emit(Resource.Loading(message = "Adjusting MTU Space..."))
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    printGattTable()
+
+                    // Use a coroutine to introduce a 4-second delay before requesting MTU
+                    coroutineScope.launch {
+                        // Emit a message before the delay
+                        data.emit(Resource.Loading(message = "Waiting to adjust MTU..."))
+
+                        // Introduce a 4-second delay before requesting MTU
+                        delay(4000)
+
+                        // Emit a message before requesting MTU
+                        data.emit(Resource.Loading(message = "Requesting MTU change..."))
+
+                        // Now request MTU change
+                        val mtuRequestResult = gatt.requestMtu(517)
+
+                        // Log the MTU request result
+                        if (mtuRequestResult) {
+                            data.emit(Resource.Loading(message = "MTU request initiated, waiting for response..."))
+                        } else {
+                            data.emit(Resource.Error(errorMessage = "MTU request failed to initiate"))
+                        }
+                    }
+                } else {
+                    // Handle service discovery failure
+                    coroutineScope.launch {
+                        data.emit(Resource.Error(errorMessage = "Service discovery failed"))
+                    }
                 }
-                gatt.requestMtu(517)
             }
         }
 
@@ -146,7 +171,6 @@ class DataBLEReceiveManager @Inject constructor(
                             data.emit(
                                 Resource.Success(data = dataResult)
                             )
-                            delay(4000)
                         }
                     }
                     else -> Unit
