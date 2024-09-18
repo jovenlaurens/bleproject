@@ -11,8 +11,6 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import com.example.bletutorial.data.ConnectionState
 import com.example.bletutorial.data.DataReceiveManager
@@ -157,12 +155,14 @@ class DataBLEReceiveManager @Inject constructor(
                                 delay(4000L) // 4-second interval
                             }
                         }
+
                         else -> Unit
                     }
                 } catch (e: Exception) {
                     data.emit(Resource.Error(errorMessage = "Error processing characteristic change"))
                 }
             }
+        }
     }
 
     private fun enableNotification(characteristic: BluetoothGattCharacteristic){
