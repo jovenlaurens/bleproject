@@ -6,7 +6,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-suspend fun postBluetoothData(data: String) {
+suspend fun postBluetoothData(data: ByteArray) {
     val url = URL("http://127.0.0.1:5000/add_performance_and_records")
 
     // Construct JSON data
@@ -23,7 +23,7 @@ suspend fun postBluetoothData(data: String) {
                 put("gps_latitude", 40.7128)
                 put("gps_longitude", -74.0060)
                 put("gps_altitude", 15.0)
-                put("blob_data", data)
+                put("blob_data", data.joinToString(", ") { byte -> byte.toInt().toString() })
             })
         })
     }
