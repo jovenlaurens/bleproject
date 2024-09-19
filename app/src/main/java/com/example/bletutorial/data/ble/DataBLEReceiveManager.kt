@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import postBluetoothData
 import java.util.UUID
 import javax.inject.Inject
 
@@ -114,21 +115,14 @@ class DataBLEReceiveManager @Inject constructor(
                 printGattTable()
                 coroutineScope.launch {
                     data.emit(Resource.Loading(message = "Adjusting MTU Space..."))
-                    gatt.requestMtu(517)
+                    val characteristic = findCharacteristics(DATA_SERVICE_UIID, DATA_CHARACTERISTICS_UUID)
+                    if (characteristic != null) {
+                        enableNotification(characteristic)
+                    }
+                    delay(4000L)
                 }
 
             }
-        }
-
-        override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
-            val characteristic = findCharacteristics(DATA_SERVICE_UIID, DATA_CHARACTERISTICS_UUID)
-            if (characteristic == null) {
-                coroutineScope.launch {
-                    data.emit(Resource.Error(errorMessage = "Could not find data publisher"))
-                }
-                return
-            }
-            enableNotification(characteristic)
         }
 
         override fun onCharacteristicChanged(
@@ -152,17 +146,17 @@ class DataBLEReceiveManager @Inject constructor(
                                 data.emit(
                                     Resource.Success(data = dataResult)
                                 )
-                                delay(4000L) // 4-second interval
+                                postBluetoothData(rawData.joinToString(", ") { byte -> byte.toInt().toString() })
+
                             }
                         }
-
                         else -> Unit
                     }
                 } catch (e: Exception) {
                     data.emit(Resource.Error(errorMessage = "Error processing characteristic change"))
                 }
             }
-        }
+            }
     }
 
     private fun enableNotification(characteristic: BluetoothGattCharacteristic){

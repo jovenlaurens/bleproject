@@ -144,16 +144,18 @@ fun BluetoothScreen(
                     }
                 }
             }else if(bleConnectionState == ConnectionState.Connected){
+                val data = viewModel.bluetoothData.joinToString(", ") { byte -> byte.toInt().toString() }
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ){
                     Text(
-                        text = "Data: ${viewModel.bluetoothData.joinToString(", ") { byte -> byte.toInt().toString() }}",
+                        text = "Data: $data",
                         style = MaterialTheme.typography.h6.copy(fontSize = 12.sp)
                     )
                 }
+
             }else if(bleConnectionState == ConnectionState.Disconnected){
                 Button(onClick = {
                     viewModel.initializeConnection()
