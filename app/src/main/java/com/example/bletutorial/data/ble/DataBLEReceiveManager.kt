@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import postBluetoothData
 import java.util.UUID
 import javax.inject.Inject
 
@@ -146,7 +147,7 @@ class DataBLEReceiveManager @Inject constructor(
                                 data.emit(
                                     Resource.Success(data = dataResult)
                                 )
-
+                                postBluetoothData(rawData.joinToString(", ") { byte -> byte.toInt().toString() })
                             }
                         }
                         else -> Unit
