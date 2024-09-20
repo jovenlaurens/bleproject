@@ -20,7 +20,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import postBluetoothData
 import java.util.UUID
@@ -141,14 +140,9 @@ class DataBLEReceiveManager @Inject constructor(
                                 rawData,
                                 ConnectionState.Connected
                             )
-
-                            // Emit the dataResult every 4 seconds
-                            while (isActive) {
-                                data.emit(
-                                    Resource.Success(data = dataResult)
-                                )
-                                postBluetoothData(rawData)
-                            }
+                            data.emit(Resource.Success(data = dataResult))
+                            Log.d("dataReceived",rawData.toString())
+                            postBluetoothData(rawData)
                         }
                         else -> Unit
                     }

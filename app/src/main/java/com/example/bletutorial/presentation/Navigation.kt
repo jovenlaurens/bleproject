@@ -28,5 +28,5 @@ fun Navigation(
 
 sealed class Screen(val route:String){
     object StartScreen:Screen("start_screen")
-    object BluetoothScreen:Screen("temp_humid_screen")
+    object BluetoothScreen:Screen("data_screen")
 }
