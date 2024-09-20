@@ -141,7 +141,7 @@ class DataBLEReceiveManager @Inject constructor(
                                 ConnectionState.Connected
                             )
                             data.emit(Resource.Success(data = dataResult))
-                            Log.d("dataReceived",rawData.toString())
+                            Log.d("dataReceived",rawData.joinToString(", ") { byte -> byte.toInt().toString() })
                             postBluetoothData(rawData)
                         }
                         else -> Unit
