@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -45,7 +46,7 @@ import com.example.bletutorial.presentation.permissions.PermissionUtils
 import com.example.bletutorial.presentation.permissions.SystemBroadcastReceiver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -66,7 +67,12 @@ fun BluetoothScreen(
         }
     }
 
-    lateinit var fusedLocationClient: FusedLocationProviderClient
+    val context = LocalContext.current
+
+    // Initialize FusedLocationProviderClient using the context
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
 
     val permissionState = rememberMultiplePermissionsState(permissions = PermissionUtils.permissions)
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -163,8 +169,8 @@ fun BluetoothScreen(
                     }
                 }
             }else if(bleConnectionState == ConnectionState.Connected){
-                var recordId by remember { mutableStateOf("0") }
-                var performerId by remember { mutableStateOf("0") }
+                var recordId by remember { mutableStateOf("1") }
+                var performerId by remember { mutableStateOf("100001") }
                 var performanceLocation by remember { mutableStateOf("Shanghai") }
                 var timestamp by remember { mutableStateOf("") }
 
