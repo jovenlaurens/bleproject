@@ -209,7 +209,7 @@ fun BluetoothScreen(
                         // Button to stop data collection
                         Button(
                             onClick = {
-                                stopRequested = true
+                                isCollecting = false
                                 Log.d("test", "Stop requested")
                             },
                             modifier = Modifier.fillMaxWidth(0.5f),
