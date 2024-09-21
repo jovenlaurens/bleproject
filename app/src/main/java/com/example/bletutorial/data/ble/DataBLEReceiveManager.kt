@@ -250,6 +250,7 @@ class DataBLEReceiveManager @Inject constructor(
         coroutineScope.launch {
             data.emit(Resource.Loading(data = DataResult(
                 bleDevices,
+                deviceName,
                 ByteArray(0),
                 ConnectionState.Disconnected
             ),message = "Scanning Ble devices..."))
