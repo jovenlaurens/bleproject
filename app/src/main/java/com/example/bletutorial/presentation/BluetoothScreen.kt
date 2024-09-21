@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.example.bletutorial.api.BlobData
 import com.example.bletutorial.api.DataInfo
 import com.example.bletutorial.api.PerformanceData
 import com.example.bletutorial.api.PerformanceRecords
@@ -246,7 +247,7 @@ fun BluetoothScreen(
                                     // Launch a coroutine for data collection
                                     scope.launch {
                                         val durationMillis = 4000L // 4 seconds
-                                        val pollingIntervalMillis = 500L // Poll every 500 ms
+                                        val pollingIntervalMillis = 100L // Poll every 100 ms
                                         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")  // Updated format pattern
                                         val initStartTime = System.currentTimeMillis()
                                         val initDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(initStartTime), ZoneId.systemDefault())
@@ -278,12 +279,14 @@ fun BluetoothScreen(
                                             accumulatedData = bluetoothDataList.joinToString("\n")
                                             accumulatedRawData = rawDataList.joinToString("\n")
 
-                                            val performanceRecords = PerformanceRecords(recordId.toInt(), timestamp, gpsLatitude, gpsLongitude, gpsAltitude, bluetoothDataList)
+                                            val blobData = BlobData(bluetoothDataList, bluetoothDataList)
+                                            val performanceRecords = mutableListOf<PerformanceRecords>(PerformanceRecords(recordId.toInt(), timestamp, gpsLatitude, gpsLongitude, gpsAltitude, blobData))
 
                                             Log.d("dataCollected", accumulatedData)
                                             Log.d("rawDataCollected", accumulatedRawData)
 
                                             val dataInfo = DataInfo(performanceData, performanceRecords)
+                                            Log.d("API", "PostData: $dataInfo")
 
                                             service.sendData(dataInfo).enqueue(object : retrofit2.Callback<Void> {
                                                 override fun onResponse(call: retrofit2.Call<Void>, response: retrofit2.Response<Void>) {
