@@ -43,7 +43,6 @@ import com.example.bletutorial.presentation.permissions.PermissionUtils
 import com.example.bletutorial.presentation.permissions.SystemBroadcastReceiver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
@@ -256,7 +255,7 @@ fun BluetoothScreen(
                                                 Log.d("dataSize", "byte size is $byteSize bytes")
 
                                                 // Wait for the polling interval before appending again
-                                                delay(pollingIntervalMillis)
+                                                // delay(pollingIntervalMillis)
                                             }
 
                                             // Concatenate the collected data
