@@ -159,8 +159,9 @@ fun BluetoothScreen(
                     }
                 }
             }else if(bleConnectionState == ConnectionState.Connected){
-                var recordId by remember { mutableStateOf("") }
-                var performerId by remember { mutableStateOf("") }
+                var recordId by remember { mutableStateOf("0") }
+                var performerId by remember { mutableStateOf("0") }
+                var performanceLocation by remember { mutableStateOf("Shanghai") }
                 var timestamp by remember { mutableStateOf("") }
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -188,6 +189,15 @@ fun BluetoothScreen(
                         value = performerId,
                         onValueChange = { performerId = it },
                         label = { Text("Performer ID") },
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextField(
+                        value = performanceLocation,
+                        onValueChange = { performanceLocation = it },
+                        label = { Text("Performance Location") },
                         modifier = Modifier.fillMaxWidth(0.8f)
                     )
 
