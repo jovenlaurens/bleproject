@@ -189,14 +189,14 @@ fun BluetoothScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        text = "Timestamp: $timestamp",
-                        style = MaterialTheme.typography.h6
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
                     if (isCollecting) {
+                        Text(
+                            text = "Timestamp: $timestamp",
+                            style = MaterialTheme.typography.h6
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
                         Text(
                             text = "Recording...",
                             style = MaterialTheme.typography.h6,
@@ -240,7 +240,7 @@ fun BluetoothScreen(
 
                                             while (System.currentTimeMillis() - startTime < durationMillis) {
                                                 // Append bluetooth data from viewModel to the list
-                                                bluetoothDataList.add(viewModel.bluetoothData.joinToString(", ") { byte -> byte.toInt().toString() })
+                                                bluetoothDataList.add(viewModel.bluetoothData.toHex())
                                                 rawDataList.add(viewModel.bluetoothData.toString())
                                                 // Wait for the polling interval before appending again
                                                 delay(pollingIntervalMillis)
@@ -279,4 +279,8 @@ fun BluetoothScreen(
             }
         }
     }
+}
+
+fun ByteArray.toHex(): String {
+    return joinToString(separator = "") { byte -> "%02x".format(byte) }
 }
