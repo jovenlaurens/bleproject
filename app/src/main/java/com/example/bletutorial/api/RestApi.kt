@@ -5,6 +5,6 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface RestApi {
-    @POST("endpoint")
+    @POST("add_performance_and_records")
     fun sendData(@Body postData: DataInfo): Call<Void>
 }

@@ -34,6 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.example.bletutorial.api.DataInfo
+import com.example.bletutorial.api.PerformanceData
+import com.example.bletutorial.api.PerformanceRecords
+import com.example.bletutorial.api.service
 import com.example.bletutorial.data.ConnectionState
 import com.example.bletutorial.presentation.permissions.PermissionUtils
 import com.example.bletutorial.presentation.permissions.SystemBroadcastReceiver
@@ -210,7 +214,7 @@ fun BluetoothScreen(
                         Button(
                             onClick = {
                                 isCollecting = false
-                                Log.d("test", "Stop requested")
+                                Log.d("test", "Recording data stopped")
                             },
                             modifier = Modifier.fillMaxWidth(0.5f),
                             enabled = isCollecting // Enable the button only when collecting
@@ -232,6 +236,8 @@ fun BluetoothScreen(
                                         val initStartTime = System.currentTimeMillis()
                                         val initDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(initStartTime), ZoneId.systemDefault())
                                         val initTimestamp = initDateTime.format(formatter)
+
+                                        val performanceData = PerformanceData(performerId.toInt(), initTimestamp)
 
                                         while (isCollecting) {
                                             val rawDataList = mutableListOf<String>()
@@ -257,10 +263,26 @@ fun BluetoothScreen(
                                             accumulatedData = bluetoothDataList.joinToString("\n")
                                             accumulatedRawData = rawDataList.joinToString("\n")
 
+                                            val performanceRecords = PerformanceRecords(recordId.toInt(), timestamp, bluetoothDataList)
 
-                                            Log.d("test", "Recording data stopped")
                                             Log.d("dataCollected", accumulatedData)
                                             Log.d("rawDataCollected", accumulatedRawData)
+
+                                            val dataInfo = DataInfo(performanceData, performanceRecords)
+
+                                            service.sendData(dataInfo).enqueue(object : retrofit2.Callback<Void> {
+                                                override fun onResponse(call: retrofit2.Call<Void>, response: retrofit2.Response<Void>) {
+                                                    if (response.isSuccessful) {
+                                                        Log.d("API", "Post successful!")
+                                                    } else {
+                                                        Log.d("API", "Error: ${response.code()}")
+                                                    }
+                                                }
+
+                                                override fun onFailure(call: retrofit2.Call<Void>, t: Throwable) {
+                                                    Log.d("API", "Request failed: ${t.message}")
+                                                }
+                                            })
 
                                             accumulatedData = ""
                                             accumulatedRawData = ""
