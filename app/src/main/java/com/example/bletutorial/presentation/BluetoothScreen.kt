@@ -1,17 +1,22 @@
 package com.example.bletutorial.presentation
 
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.location.Location
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -78,9 +83,14 @@ fun BluetoothScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val bleConnectionState = viewModel.connectionState
     val scope = rememberCoroutineScope()
-    var accumulatedData by remember { mutableStateOf("") }
-    var accumulatedRawData by remember { mutableStateOf("") }
     var isCollecting by remember { mutableStateOf(false) }
+    var isFound by remember { mutableStateOf(false) }
+
+    val onConnectClick: (BluetoothDevice) -> Unit = { device ->
+        // Logic to handle Bluetooth device connection
+        // For example, you might want to initiate a connection with the device:
+        viewModel.connectToDevice(device)
+    }
 
     DisposableEffect(
         key1 = lifecycleOwner,
@@ -127,17 +137,38 @@ fun BluetoothScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             if(bleConnectionState == ConnectionState.CurrentlyInitializing){
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    CircularProgressIndicator()
-                    if(viewModel.initializingMessage != null){
+                if (!isFound) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ){
+                        CircularProgressIndicator()
+                        if(viewModel.initializingMessage != null){
+                            Text(
+                                text = viewModel.initializingMessage!!
+                            )
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
                         Text(
-                            text = viewModel.initializingMessage!!
+                            text = "Found Devices:",
+                            style = MaterialTheme.typography.h6
                         )
+
+                        LazyColumn {
+                            items(viewModel.devices ?: emptyList()) { device ->
+                                DeviceItem(device = device, onConnectClick = onConnectClick)
+                            }
+                        }
                     }
                 }
             }else if(!permissionState.allPermissionsGranted){
@@ -256,7 +287,7 @@ fun BluetoothScreen(
                                     // Launch a coroutine for data collection
                                     scope.launch {
                                         val durationMillis = 1000L // 4 seconds
-                                        val pollingIntervalMillis = 50L // Poll every 100 ms
+                                        val pollingIntervalMillis = 10L // Poll every 100 ms
                                         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")  // Updated format pattern
                                         val initStartTime = System.currentTimeMillis()
                                         val initDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(initStartTime), ZoneId.systemDefault())
@@ -276,7 +307,7 @@ fun BluetoothScreen(
                                                 startTime = System.currentTimeMillis()
                                                 val currentSmall = mutableListOf<String>()
                                                 val currentLarge = mutableListOf<String>()
-                                                while (System.currentTimeMillis() - startTime < durationMillis && currentSmall.size < 512 && currentLarge.size < 1) {
+                                                while (System.currentTimeMillis() - startTime < durationMillis && (currentSmall.size < 512 || currentLarge.size < 1)) {
                                                     // Append bluetooth data from viewModel to the list
 
                                                     val hexString = viewModel.bluetoothData.toHex()
@@ -359,14 +390,6 @@ fun ByteArray.toHex(): String {
     return joinToString(separator = "") { byte -> "%02x".format(byte) }
 }
 
-fun countBytesFromHex(hexString: String): Int {
-    // Remove any whitespace or unwanted characters
-    val cleanedHex = hexString.replace("\\s".toRegex(), "") // Remove any spaces or non-hex chars
-
-    // Each pair of hex digits (2 characters) represents 1 byte
-    return cleanedHex.length / 2
-}
-
 fun filterPackage(hexString: String): Pair<List<String>, List<String>> {
     val smallRegex = Regex("(aaaa048002[0-9a-f]+?)(?=aaaa)(?!$)")
     val largeRegex = Regex("(aaaa20[0-9a-f]+?)(?=aaaa)(?!$)")
@@ -376,3 +399,31 @@ fun filterPackage(hexString: String): Pair<List<String>, List<String>> {
 
     return Pair(smallMatches, largeMatches)
 }
+
+@Composable
+fun DeviceItem(device: BluetoothDevice, onConnectClick: (BluetoothDevice) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable {
+                // Optionally handle item click if needed
+            },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column {
+            Text(text = device.name ?: "Unnamed Device")
+            Text(text = device.address)
+        }
+
+        Button(
+            onClick = { onConnectClick(device) },
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
+            Text(text = "Connect")
+        }
+    }
+}
+
+

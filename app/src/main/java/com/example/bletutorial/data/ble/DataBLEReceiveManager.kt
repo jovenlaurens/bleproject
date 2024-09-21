@@ -2,6 +2,7 @@ package com.example.bletutorial.data.ble
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
@@ -29,9 +30,10 @@ class DataBLEReceiveManager @Inject constructor(
     private val context: Context
 ) : DataReceiveManager {
 
-    private val DEVICE_NAME = "HR-S0A5790"
     private val DATA_SERVICE_UIID = "0000ffe0-0000-1000-8000-00805f9b34fb"
     private val DATA_CHARACTERISTICS_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
+
+    private val bleDevices = mutableListOf<BluetoothDevice>()
 
     override val data: MutableSharedFlow<Resource<DataResult>> = MutableSharedFlow()
 
@@ -52,17 +54,21 @@ class DataBLEReceiveManager @Inject constructor(
     private val scanCallback = object : ScanCallback(){
 
         override fun onScanResult(callbackType: Int, result: ScanResult) {
-            if(result.device.name == DEVICE_NAME){
+            super.onScanResult(callbackType, result)
+            val device = result.device
+
+            if (!bleDevices.contains(device)) {
+                bleDevices.add(device)
                 coroutineScope.launch {
-                    data.emit(Resource.Loading(message = "Connecting to device..."))
-                }
-                if(isScanning){
-                    result.device.connectGatt(context,false, gattCallback)
-                    isScanning = false
-                    bleScanner.stopScan(this)
+                    data.emit(Resource.Loading(data = DataResult(
+                        bleDevices,
+                        ByteArray(0),
+                        ConnectionState.Disconnected
+                    ), message = "Discovered device: ${device.name}"))
                 }
             }
         }
+
     }
 
     private var currentConnectionAttempt = 1
@@ -73,7 +79,11 @@ class DataBLEReceiveManager @Inject constructor(
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     coroutineScope.launch {
-                        data.emit(Resource.Loading(message = "Discovering Services..."))
+                        data.emit(Resource.Loading(data = DataResult(
+                            bleDevices,
+                            ByteArray(0),
+                            ConnectionState.Disconnected
+                        ),message = "Discovering Services..."))
                     }
                     gatt.discoverServices()
                     this@DataBLEReceiveManager.gatt = gatt
@@ -82,6 +92,7 @@ class DataBLEReceiveManager @Inject constructor(
                         data.emit(
                             Resource.Success(
                                 data = DataResult(
+                                    bleDevices,
                                     ByteArray(0),
                                     ConnectionState.Disconnected
                                 )
@@ -94,7 +105,11 @@ class DataBLEReceiveManager @Inject constructor(
                 gatt.close()
                 currentConnectionAttempt += 1
                 coroutineScope.launch {
-                    data.emit(Resource.Loading(message = "Attempting to connect $currentConnectionAttempt / $MAXIMUM_CONNECTION_ATTEMPTS"))
+                    data.emit(Resource.Loading(data = DataResult(
+                        bleDevices,
+                        ByteArray(0),
+                        ConnectionState.Disconnected
+                    ),message = "Attempting to connect $currentConnectionAttempt / $MAXIMUM_CONNECTION_ATTEMPTS"))
                 }
 
                 if (currentConnectionAttempt <= MAXIMUM_CONNECTION_ATTEMPTS) {
@@ -111,7 +126,11 @@ class DataBLEReceiveManager @Inject constructor(
             with(gatt){
                 printGattTable()
                 coroutineScope.launch {
-                    data.emit(Resource.Loading(message = "Adjusting MTU space..."))
+                    data.emit(Resource.Loading(data = DataResult(
+                        bleDevices,
+                        ByteArray(0),
+                        ConnectionState.Disconnected
+                    ),message = "Adjusting MTU space..."))
                 }
                 gatt.requestMtu(517)
             }
@@ -141,6 +160,7 @@ class DataBLEReceiveManager @Inject constructor(
 
                             // Simulating data processing
                             val dataResult = DataResult(
+                                bleDevices,
                                 rawData,
                                 ConnectionState.Connected
                             )
@@ -187,6 +207,20 @@ class DataBLEReceiveManager @Inject constructor(
         }
     }
 
+    override fun connect(device: BluetoothDevice) {
+        coroutineScope.launch {
+            data.emit(Resource.Loading(data = DataResult(
+                bleDevices,
+                ByteArray(0),
+                ConnectionState.Disconnected
+            ),message = "Connecting to device..."))
+        }
+        if(isScanning){
+            device.connectGatt(context,false, gattCallback)
+            isScanning = false
+            bleScanner.stopScan(scanCallback)
+        }
+    }
 
     override fun reconnect() {
         gatt?.connect()
@@ -198,7 +232,11 @@ class DataBLEReceiveManager @Inject constructor(
 
     override fun startReceiving() {
         coroutineScope.launch {
-            data.emit(Resource.Loading(message = "Scanning Ble devices..."))
+            data.emit(Resource.Loading(data = DataResult(
+                bleDevices,
+                ByteArray(0),
+                ConnectionState.Disconnected
+            ),message = "Scanning Ble devices..."))
         }
         isScanning = true
         bleScanner.startScan(null, scanSettings, scanCallback)

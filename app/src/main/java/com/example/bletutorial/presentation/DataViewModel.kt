@@ -1,5 +1,6 @@
 package com.example.bletutorial.presentation
 
+import android.bluetooth.BluetoothDevice
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,6 +24,9 @@ class DataViewModel @Inject constructor( private val dataReceiveManager: DataRec
     var bluetoothData by mutableStateOf(ByteArray(0))
         private set
 
+    var devices by mutableStateOf<List<BluetoothDevice>?>(emptyList())
+        private set
+
     var connectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
 
     private fun subscribeToChanges(){
@@ -35,6 +39,7 @@ class DataViewModel @Inject constructor( private val dataReceiveManager: DataRec
                     }
 
                     is Resource.Loading -> {
+                        devices = result.data?.bluetoothDevices
                         initializingMessage = result.message
                         connectionState = ConnectionState.CurrentlyInitializing
                     }
@@ -46,6 +51,10 @@ class DataViewModel @Inject constructor( private val dataReceiveManager: DataRec
                 }
             }
         }
+    }
+
+    fun connectToDevice(device: BluetoothDevice) {
+        dataReceiveManager.connect(device)
     }
 
     fun disconnect(){
