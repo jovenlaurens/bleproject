@@ -47,6 +47,7 @@ import com.example.bletutorial.presentation.permissions.SystemBroadcastReceiver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
@@ -264,14 +265,15 @@ fun BluetoothScreen(
                                         val performanceData = PerformanceData(performerId.toInt(), initTimestamp, performanceLocation)
 
                                         while (isCollecting) {
-                                            val startTime = System.currentTimeMillis()
+                                            var startTime = System.currentTimeMillis()
                                             val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault())
-                                            var smallPackage = mutableListOf<String>()
-                                            var largePackage = mutableListOf<String>()
+                                            val smallPackage = mutableListOf<String>()
+                                            val largePackage = mutableListOf<String>()
                                             val seconds = 4
                                             timestamp = dateTime.format(formatter)
 
                                             for (i in 1..seconds) {
+                                                startTime = System.currentTimeMillis()
                                                 val currentSmall = mutableListOf<String>()
                                                 val currentLarge = mutableListOf<String>()
                                                 while (System.currentTimeMillis() - startTime < durationMillis && currentSmall.size < 512 && currentLarge.size < 1) {
@@ -289,6 +291,7 @@ fun BluetoothScreen(
                                                     if (currentLarge.size < 1) {
                                                         currentLarge.addAll(large.take(1 - currentLarge.size))
                                                     }
+                                                    delay(pollingIntervalMillis)
                                                 }
                                                 smallPackage.addAll(currentSmall)
                                                 largePackage.addAll(currentLarge)
