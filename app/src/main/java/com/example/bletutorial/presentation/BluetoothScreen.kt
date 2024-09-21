@@ -163,6 +163,11 @@ fun BluetoothScreen(
                 var performerId by remember { mutableStateOf("0") }
                 var performanceLocation by remember { mutableStateOf("Shanghai") }
                 var timestamp by remember { mutableStateOf("") }
+
+                var gpsLatitude by remember { mutableStateOf(40.7128f) }
+                var gpsLongitude by remember { mutableStateOf(40.7128f) }
+                var gpsAltitude by remember { mutableStateOf(40.7128f) }
+
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -247,7 +252,7 @@ fun BluetoothScreen(
                                         val initDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(initStartTime), ZoneId.systemDefault())
                                         val initTimestamp = initDateTime.format(formatter)
 
-                                        val performanceData = PerformanceData(performerId.toInt(), initTimestamp)
+                                        val performanceData = PerformanceData(performerId.toInt(), initTimestamp, performanceLocation)
 
                                         while (isCollecting) {
                                             val rawDataList = mutableListOf<String>()
@@ -273,7 +278,7 @@ fun BluetoothScreen(
                                             accumulatedData = bluetoothDataList.joinToString("\n")
                                             accumulatedRawData = rawDataList.joinToString("\n")
 
-                                            val performanceRecords = PerformanceRecords(recordId.toInt(), timestamp, bluetoothDataList)
+                                            val performanceRecords = PerformanceRecords(recordId.toInt(), timestamp, gpsLatitude, gpsLongitude, gpsAltitude, bluetoothDataList)
 
                                             Log.d("dataCollected", accumulatedData)
                                             Log.d("rawDataCollected", accumulatedRawData)
