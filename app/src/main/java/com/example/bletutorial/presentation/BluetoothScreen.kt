@@ -64,6 +64,7 @@ fun BluetoothScreen(
     val bleConnectionState = viewModel.connectionState
     val scope = rememberCoroutineScope()
     var accumulatedData by remember { mutableStateOf("") }
+    var accumulatedRawData by remember { mutableStateOf("") }
     var isCollecting by remember { mutableStateOf(false) } // To track if data collection is active
     var stopRequested by remember { mutableStateOf(false) }
 
@@ -195,64 +196,75 @@ fun BluetoothScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Button(
-                        onClick = {
-                            if (!isCollecting) {
-                                isCollecting = true
-                                stopRequested = false
-                                Log.d("test", "Recording data started")
+                    if (isCollecting) {
+                        Text(
+                            text = "Recording...",
+                            style = MaterialTheme.typography.h6,
+                            modifier = Modifier.fillMaxWidth(0.5f),
+                            textAlign = TextAlign.Center
+                        )
 
-                                // Launch a coroutine for data collection
-                                scope.launch {
-                                    val durationMillis = 4000L // 4 seconds
-                                    val pollingIntervalMillis = 500L // Poll every 500 ms
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                                    while (isCollecting && !stopRequested) {
-                                        val bluetoothDataList = mutableListOf<String>()
-                                        val startTime = System.currentTimeMillis()
+                        // Button to stop data collection
+                        Button(
+                            onClick = {
+                                stopRequested = true
+                                Log.d("test", "Stop requested")
+                            },
+                            modifier = Modifier.fillMaxWidth(0.5f),
+                            enabled = isCollecting // Enable the button only when collecting
+                        ) {
+                            Text("Stop")
+                        }
+                    } else {
+                        Button(
+                            onClick = {
+                                if (!isCollecting) {
+                                    isCollecting = true
+                                    Log.d("test", "Recording data started")
 
-                                        val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-                                        val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault())
-                                        timestamp = dateTime.format(formatter)
+                                    // Launch a coroutine for data collection
+                                    scope.launch {
+                                        val durationMillis = 4000L // 4 seconds
+                                        val pollingIntervalMillis = 500L // Poll every 500 ms
 
-                                        while (System.currentTimeMillis() - startTime < durationMillis) {
-                                            // Append bluetooth data from viewModel to the list
-                                            bluetoothDataList.add(viewModel.bluetoothData.joinToString(", ") { byte -> byte.toInt().toString() })
+                                        while (isCollecting) {
+                                            val rawDataList = mutableListOf<String>()
+                                            val bluetoothDataList = mutableListOf<String>()
+                                            val startTime = System.currentTimeMillis()
 
-                                            // Wait for the polling interval before appending again
-                                            delay(pollingIntervalMillis)
+                                            val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+                                            val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault())
+                                            timestamp = dateTime.format(formatter)
+
+                                            while (System.currentTimeMillis() - startTime < durationMillis) {
+                                                // Append bluetooth data from viewModel to the list
+                                                bluetoothDataList.add(viewModel.bluetoothData.joinToString(", ") { byte -> byte.toInt().toString() })
+                                                rawDataList.add(viewModel.bluetoothData.toString())
+                                                // Wait for the polling interval before appending again
+                                                delay(pollingIntervalMillis)
+                                            }
+
+                                            // Concatenate the collected data
+                                            accumulatedData = bluetoothDataList.joinToString("\n")
+                                            accumulatedRawData = rawDataList.joinToString("\n")
+
+
+                                            Log.d("test", "Recording data stopped")
+                                            Log.d("dataCollected", accumulatedData)
+                                            Log.d("rawDataCollected", accumulatedRawData)
+
+                                            accumulatedData = ""
+                                            accumulatedRawData = ""
                                         }
-
-                                        // Concatenate the collected data
-                                        accumulatedData = bluetoothDataList.joinToString("\n")
-
-                                        isCollecting = false
-                                        Log.d("test", "Recording data stopped")
-                                        Log.d("data collected", accumulatedData)
-
-                                        accumulatedData = ""
                                     }
                                 }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(0.5f),
-                        enabled = !isCollecting // Disable button while collecting
-                    ) {
-                        Text(if (isCollecting) "Recording..." else "Record Data")
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Button to stop data collection
-                    Button(
-                        onClick = {
-                            stopRequested = true
-                            Log.d("test", "Stop requested")
-                        },
-                        modifier = Modifier.fillMaxWidth(0.5f),
-                        enabled = isCollecting // Enable the button only when collecting
-                    ) {
-                        Text("Stop")
+                            },
+                            modifier = Modifier.fillMaxWidth(0.5f),
+                        ) {
+                            Text("Record Data")
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
