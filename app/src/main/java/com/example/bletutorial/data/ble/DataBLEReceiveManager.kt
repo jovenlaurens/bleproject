@@ -222,6 +222,7 @@ class DataBLEReceiveManager @Inject constructor(
     }
 
     override fun connect(device: BluetoothDevice) {
+        Log.d("Connecting", "device name: ${device.name}")
         deviceName = device.name
         coroutineScope.launch {
             data.emit(Resource.Loading(data = DataResult(
