@@ -256,7 +256,7 @@ fun BluetoothScreen(
                                     // Launch a coroutine for data collection
                                     scope.launch {
                                         val durationMillis = 1000L // 4 seconds
-                                        val pollingIntervalMillis = 100L // Poll every 100 ms
+                                        val pollingIntervalMillis = 50L // Poll every 100 ms
                                         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")  // Updated format pattern
                                         val initStartTime = System.currentTimeMillis()
                                         val initDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(initStartTime), ZoneId.systemDefault())
@@ -295,6 +295,8 @@ fun BluetoothScreen(
                                                 }
                                                 smallPackage.addAll(currentSmall)
                                                 largePackage.addAll(currentLarge)
+                                                Log.d("packageSize", "small size ${currentSmall.size}")
+                                                Log.d("packageSize", "large size ${currentLarge.size}")
                                             }
 
                                             // Locate the location
