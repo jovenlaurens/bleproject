@@ -288,6 +288,18 @@ fun BluetoothScreen(
                         ) {
                             Text("Stop")
                         }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 30.dp)
+                        ) {
+                            items(dataList ?: emptyList()) { dataInfo ->
+                                DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
+                            }
+                        }
                     } else {
                         Button(
                             onClick = {
@@ -371,19 +383,19 @@ fun BluetoothScreen(
                         ) {
                             Text("Record Data")
                         }
-                    }
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 30.dp)
-                    ) {
-                        items(dataList ?: emptyList()) { dataInfo ->
-                            DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 30.dp)
+                        ) {
+                            items(dataList ?: emptyList()) { dataInfo ->
+                                DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
+                            }
                         }
                     }
+
                 }
 
             }else if(bleConnectionState == ConnectionState.Disconnected){
