@@ -228,13 +228,16 @@ fun BluetoothScreen(
                                     scope.launch {
                                         val durationMillis = 4000L // 4 seconds
                                         val pollingIntervalMillis = 500L // Poll every 500 ms
+                                        val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+                                        val initStartTime = System.currentTimeMillis()
+                                        val initDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(initStartTime), ZoneId.systemDefault())
+                                        val initTimestamp = initDateTime.format(formatter)
 
                                         while (isCollecting) {
                                             val rawDataList = mutableListOf<String>()
                                             val bluetoothDataList = mutableListOf<String>()
                                             val startTime = System.currentTimeMillis()
 
-                                            val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
                                             val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault())
                                             timestamp = dateTime.format(formatter)
 
@@ -242,6 +245,10 @@ fun BluetoothScreen(
                                                 // Append bluetooth data from viewModel to the list
                                                 bluetoothDataList.add(viewModel.bluetoothData.toHex())
                                                 rawDataList.add(viewModel.bluetoothData.toString())
+
+                                                val byteSize = countBytesFromHex(viewModel.bluetoothData.toHex())
+                                                Log.d("dataSize", "byte size is $byteSize bytes")
+
                                                 // Wait for the polling interval before appending again
                                                 delay(pollingIntervalMillis)
                                             }
@@ -283,4 +290,12 @@ fun BluetoothScreen(
 
 fun ByteArray.toHex(): String {
     return joinToString(separator = "") { byte -> "%02x".format(byte) }
+}
+
+fun countBytesFromHex(hexString: String): Int {
+    // Remove any whitespace or unwanted characters
+    val cleanedHex = hexString.replace("\\s".toRegex(), "") // Remove any spaces or non-hex chars
+
+    // Each pair of hex digits (2 characters) represents 1 byte
+    return cleanedHex.length / 2
 }

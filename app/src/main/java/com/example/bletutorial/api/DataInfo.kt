@@ -10,7 +10,6 @@ data class DataInfo(
 data class PerformanceData (
     @SerializedName("performer_id") val performerId: Int?,
     @SerializedName("performance_time") val performanceTime: String?,
-    @SerializedName("performance_location") val performanceLocation: String?
 )
 
 data class PerformanceRecords (
