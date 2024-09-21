@@ -465,7 +465,7 @@ fun DataInfoItem(dataInfo: DataInfo, onResendClick: (DataInfo) -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // Button to resend the API for this specific item
-        Button(onClick = onResendClick(dataInfo)) {
+        Button(onClick = {onResendClick(dataInfo)}) {
             Text("Resend")
         }
     }
