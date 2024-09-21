@@ -355,6 +355,7 @@ fun BluetoothScreen(
 
                                             val dataInfo = DataInfo(performanceData, performanceRecords)
                                             dataList.add(dataInfo)
+                                            Log.d("Data", "DataSize: ${dataList.size}")
                                             Log.d("API", "PostData: $dataInfo")
 
                                             sendAPI(dataInfo)
@@ -375,14 +376,13 @@ fun BluetoothScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f) // Takes up available space
-                            .heightIn(max = 200.dp)
+                            .heightIn(max = 30.dp)
                     ) {
                         items(dataList) { dataInfo ->
                             DataInfoItem(dataInfo = dataInfo, onResendClick = { sendAPI(dataInfo) })
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
             }else if(bleConnectionState == ConnectionState.Disconnected){
