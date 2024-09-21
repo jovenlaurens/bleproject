@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -107,7 +107,7 @@ fun BluetoothScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.6f)
-                .aspectRatio(1f),
+                .fillMaxHeight(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
@@ -167,7 +167,7 @@ fun BluetoothScreen(
                         style = MaterialTheme.typography.h6
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     TextField(
                         value = recordId,
@@ -186,14 +186,14 @@ fun BluetoothScreen(
                         modifier = Modifier.fillMaxWidth(0.8f)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
                         text = "Timestamp: $timestamp",
                         style = MaterialTheme.typography.h6
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
                         onClick = {
@@ -241,7 +241,7 @@ fun BluetoothScreen(
                         Text(if (isCollecting) "Recording..." else "Record Data")
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     // Button to stop data collection
                     Button(
@@ -255,7 +255,7 @@ fun BluetoothScreen(
                         Text("Stop")
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
             }else if(bleConnectionState == ConnectionState.Disconnected){
