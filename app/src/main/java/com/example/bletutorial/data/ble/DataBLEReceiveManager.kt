@@ -64,9 +64,11 @@ class DataBLEReceiveManager @Inject constructor(
                         bleDevices,
                         ByteArray(0),
                         ConnectionState.Disconnected
-                    ), message = "Discovered device: ${device.name}"))
+                    ), message = "Discovered devices!"))
                 }
             }
+
+            Log.d("Bluetooth Device", bleDevices.toString())
         }
 
     }
