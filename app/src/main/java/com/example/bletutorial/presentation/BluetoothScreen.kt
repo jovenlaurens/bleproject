@@ -218,7 +218,7 @@ fun BluetoothScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Bluetooth device connected successfully.",
+                        text = "${viewModel.devices} device connected successfully.",
                         style = MaterialTheme.typography.h6
                     )
 
