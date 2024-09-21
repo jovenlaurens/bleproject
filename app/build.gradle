@@ -74,4 +74,9 @@ dependencies {
 
     //Permissions
     implementation "com.google.accompanist:accompanist-permissions:0.21.1-beta"
+
+    //API
+    implementation 'com.squareup.retrofit2:retrofit:2.6.1'
+    implementation 'com.squareup.retrofit2:converter-gson:2.6.1'
+    implementation 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.1.0'
 }

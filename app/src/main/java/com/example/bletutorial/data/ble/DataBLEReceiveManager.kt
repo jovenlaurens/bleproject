@@ -18,7 +18,6 @@ import com.example.bletutorial.data.DataResult
 import com.example.bletutorial.util.Resource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import postBluetoothData
@@ -110,18 +109,24 @@ class DataBLEReceiveManager @Inject constructor(
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            with(gatt) {
+            with(gatt){
                 printGattTable()
                 coroutineScope.launch {
-                    data.emit(Resource.Loading(message = "Adjusting MTU Space..."))
-                    val characteristic = findCharacteristics(DATA_SERVICE_UIID, DATA_CHARACTERISTICS_UUID)
-                    if (characteristic != null) {
-                        enableNotification(characteristic)
-                    }
-                    delay(4000L)
+                    data.emit(Resource.Loading(message = "Adjusting MTU space..."))
                 }
-
+                gatt.requestMtu(517)
             }
+        }
+
+        override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+            val characteristic = findCharacteristics(DATA_SERVICE_UIID, DATA_CHARACTERISTICS_UUID)
+            if(characteristic == null){
+                coroutineScope.launch {
+                    data.emit(Resource.Error(errorMessage = "Could not find data publisher"))
+                }
+                return
+            }
+            enableNotification(characteristic)
         }
 
 

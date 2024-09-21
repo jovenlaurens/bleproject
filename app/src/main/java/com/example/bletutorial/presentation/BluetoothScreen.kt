@@ -1,30 +1,36 @@
 package com.example.bletutorial.presentation
 
 import android.bluetooth.BluetoothAdapter
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -33,6 +39,8 @@ import com.example.bletutorial.presentation.permissions.PermissionUtils
 import com.example.bletutorial.presentation.permissions.SystemBroadcastReceiver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -50,6 +58,10 @@ fun BluetoothScreen(
     val permissionState = rememberMultiplePermissionsState(permissions = PermissionUtils.permissions)
     val lifecycleOwner = LocalLifecycleOwner.current
     val bleConnectionState = viewModel.connectionState
+    val scope = rememberCoroutineScope()
+    var accumulatedData by remember { mutableStateOf("") }
+    var isCollecting by remember { mutableStateOf(false) } // To track if data collection is active
+    var stopRequested by remember { mutableStateOf(false) }
 
     DisposableEffect(
         key1 = lifecycleOwner,
@@ -91,13 +103,7 @@ fun BluetoothScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.6f)
-                .aspectRatio(1f)
-                .border(
-                    BorderStroke(
-                        5.dp, Color.Blue
-                    ),
-                    RoundedCornerShape(10.dp)
-                ),
+                .aspectRatio(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
@@ -144,16 +150,91 @@ fun BluetoothScreen(
                     }
                 }
             }else if(bleConnectionState == ConnectionState.Connected){
-                val data = viewModel.bluetoothData.joinToString(", ") { byte -> byte.toInt().toString() }
+                var recordId by remember { mutableStateOf("") }
+                var performerId by remember { mutableStateOf("") }
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
-                ){
+                ) {
                     Text(
-                        text = "Data: $data",
-                        style = MaterialTheme.typography.h6.copy(fontSize = 12.sp)
+                        text = "Bluetooth device connected successfully.",
+                        style = MaterialTheme.typography.h6
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextField(
+                        value = recordId,
+                        onValueChange = { recordId = it },
+                        label = { Text("Record ID") },
+                        modifier = Modifier.fillMaxWidth(0.8f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextField(
+                        value = performerId,
+                        onValueChange = { performerId = it },
+                        label = { Text("Performer ID") },
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            if (!isCollecting) {
+                                isCollecting = true
+                                stopRequested = false
+                                Log.d("test", "Recording data started")
+
+                                // Launch a coroutine for data collection
+                                scope.launch {
+                                    val bluetoothDataList = mutableListOf<String>()
+                                    val pollingIntervalMillis = 500L // Poll every 500 ms
+
+                                    while (isCollecting && !stopRequested) {
+                                        // Append bluetooth data from viewModel to the list
+                                        bluetoothDataList.add(viewModel.bluetoothData.joinToString(", ") { byte -> byte.toInt().toString() })
+
+                                        // Wait for the polling interval before appending again
+                                        delay(pollingIntervalMillis)
+                                    }
+
+                                    // Concatenate the collected data
+                                    accumulatedData = bluetoothDataList.joinToString("\n")
+
+                                    isCollecting = false
+                                    Log.d("test", "Recording data stopped")
+                                    Log.d("data collected", accumulatedData)
+
+                                    accumulatedData = ""
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(0.5f),
+                        enabled = !isCollecting // Disable button while collecting
+                    ) {
+                        Text("Record Data")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Button to stop data collection
+                    Button(
+                        onClick = {
+                            stopRequested = true
+                            Log.d("test", "Stop requested")
+                        },
+                        modifier = Modifier.fillMaxWidth(0.5f),
+                        enabled = isCollecting // Enable the button only when collecting
+                    ) {
+                        Text("Stop")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
             }else if(bleConnectionState == ConnectionState.Disconnected){
