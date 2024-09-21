@@ -27,6 +27,9 @@ class DataViewModel @Inject constructor( private val dataReceiveManager: DataRec
     var devices by mutableStateOf<List<BluetoothDevice>?>(emptyList())
         private set
 
+    var deviceName by mutableStateOf<String?>(null)
+        private set
+
     var connectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
 
     private fun subscribeToChanges(){
@@ -39,6 +42,7 @@ class DataViewModel @Inject constructor( private val dataReceiveManager: DataRec
                     }
 
                     is Resource.Loading -> {
+                        deviceName = result.data?.device
                         devices = result.data?.bluetoothDevices
                         initializingMessage = result.message
                         connectionState = ConnectionState.CurrentlyInitializing

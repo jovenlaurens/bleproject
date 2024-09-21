@@ -229,7 +229,7 @@ class DataBLEReceiveManager @Inject constructor(
                 bleDevices,
                 deviceName,
                 ByteArray(0),
-                ConnectionState.Connected
+                ConnectionState.Disconnected
             ),message = "Connecting to device..."))
         }
         if(isScanning){
