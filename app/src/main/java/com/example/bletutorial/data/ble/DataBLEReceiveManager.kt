@@ -35,6 +35,8 @@ class DataBLEReceiveManager @Inject constructor(
 
     private val bleDevices = mutableListOf<BluetoothDevice>()
 
+    private var deviceName = ""
+
     override val data: MutableSharedFlow<Resource<DataResult>> = MutableSharedFlow()
 
     private val bleScanner by lazy {
@@ -57,11 +59,16 @@ class DataBLEReceiveManager @Inject constructor(
             super.onScanResult(callbackType, result)
             val device = result.device
 
-            if (!bleDevices.contains(device)) {
+            if (!bleDevices.contains(device) && !device.name.isNullOrEmpty()) {
                 bleDevices.add(device)
+                coroutineScope.launch {
+                    data.emit(Resource.Loading(message = "Discovering devices"))
+                }
+            } else {
                 coroutineScope.launch {
                     data.emit(Resource.Loading(data = DataResult(
                         bleDevices,
+                        deviceName,
                         ByteArray(0),
                         ConnectionState.Disconnected
                     ), message = "Discovered devices!"))
@@ -83,6 +90,7 @@ class DataBLEReceiveManager @Inject constructor(
                     coroutineScope.launch {
                         data.emit(Resource.Loading(data = DataResult(
                             bleDevices,
+                            deviceName,
                             ByteArray(0),
                             ConnectionState.Disconnected
                         ),message = "Discovering Services..."))
@@ -95,6 +103,7 @@ class DataBLEReceiveManager @Inject constructor(
                             Resource.Success(
                                 data = DataResult(
                                     bleDevices,
+                                    deviceName,
                                     ByteArray(0),
                                     ConnectionState.Disconnected
                                 )
@@ -109,6 +118,7 @@ class DataBLEReceiveManager @Inject constructor(
                 coroutineScope.launch {
                     data.emit(Resource.Loading(data = DataResult(
                         bleDevices,
+                        deviceName,
                         ByteArray(0),
                         ConnectionState.Disconnected
                     ),message = "Attempting to connect $currentConnectionAttempt / $MAXIMUM_CONNECTION_ATTEMPTS"))
@@ -130,6 +140,7 @@ class DataBLEReceiveManager @Inject constructor(
                 coroutineScope.launch {
                     data.emit(Resource.Loading(data = DataResult(
                         bleDevices,
+                        deviceName,
                         ByteArray(0),
                         ConnectionState.Disconnected
                     ),message = "Adjusting MTU space..."))
@@ -163,6 +174,7 @@ class DataBLEReceiveManager @Inject constructor(
                             // Simulating data processing
                             val dataResult = DataResult(
                                 bleDevices,
+                                deviceName,
                                 rawData,
                                 ConnectionState.Connected
                             )
@@ -210,9 +222,11 @@ class DataBLEReceiveManager @Inject constructor(
     }
 
     override fun connect(device: BluetoothDevice) {
+        deviceName = device.name
         coroutineScope.launch {
             data.emit(Resource.Loading(data = DataResult(
                 bleDevices,
+                deviceName,
                 ByteArray(0),
                 ConnectionState.Disconnected
             ),message = "Connecting to device..."))
