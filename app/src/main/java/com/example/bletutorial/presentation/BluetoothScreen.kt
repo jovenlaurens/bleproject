@@ -87,8 +87,8 @@ fun BluetoothScreen(
     var isFound by remember { mutableStateOf(false) }
 
     val onConnectClick: (BluetoothDevice) -> Unit = { device ->
-        // Logic to handle Bluetooth device connection
-        // For example, you might want to initiate a connection with the device:
+        // Ensure only one device connects at a time
+        Log.d("BluetoothDeviceList", "Connecting to device: ${device.name}")
         viewModel.connectToDevice(device)
     }
 
@@ -420,10 +420,7 @@ fun DeviceItem(device: BluetoothDevice, onConnectClick: (BluetoothDevice) -> Uni
             Text(text = device.address)
         }
 
-        Button(
-            onClick = { onConnectClick(device) },
-            modifier = Modifier.padding(start = 8.dp)
-        ) {
+        Button(onClick = { onConnectClick(device) }) {
             Text(text = "Connect")
         }
     }
