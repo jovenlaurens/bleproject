@@ -15,12 +15,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
@@ -94,6 +93,10 @@ fun BluetoothScreen(
         // Ensure only one device connects at a time
         Log.d("BluetoothDeviceList", "Connecting to device: ${device.name}")
         viewModel.connectToDevice(device)
+    }
+
+    val resendClick: (DataInfo) -> Unit = { dataInfo ->
+        sendAPI(dataInfo)
     }
 
     DisposableEffect(
@@ -371,16 +374,15 @@ fun BluetoothScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp)
-                            .verticalScroll(rememberScrollState())
+                            .heightIn(max = 30.dp)
                     ) {
                         items(dataList ?: emptyList()) { dataInfo ->
-                            DataInfoItem(dataInfo = dataInfo, onResendClick = { sendAPI(dataInfo) })
+                            DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
                         }
                     }
 
@@ -451,7 +453,7 @@ fun DeviceItem(device: BluetoothDevice, onConnectClick: (BluetoothDevice) -> Uni
 }
 
 @Composable
-fun DataInfoItem(dataInfo: DataInfo, onResendClick: () -> Unit) {
+fun DataInfoItem(dataInfo: DataInfo, onResendClick: (DataInfo) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -463,7 +465,7 @@ fun DataInfoItem(dataInfo: DataInfo, onResendClick: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // Button to resend the API for this specific item
-        Button(onClick = onResendClick) {
+        Button(onClick = onResendClick(dataInfo)) {
             Text("Resend")
         }
     }
