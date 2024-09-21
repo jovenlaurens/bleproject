@@ -27,3 +27,5 @@ data class BlobData (
     @SerializedName("finalpackage") val finalPackage: List<String>?
     // @SerializedName("label") val label: Int?
 )
+
+

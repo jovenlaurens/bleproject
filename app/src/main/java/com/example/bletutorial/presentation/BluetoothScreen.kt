@@ -47,7 +47,6 @@ import com.example.bletutorial.presentation.permissions.SystemBroadcastReceiver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
@@ -255,7 +254,7 @@ fun BluetoothScreen(
 
                                     // Launch a coroutine for data collection
                                     scope.launch {
-                                        val durationMillis = 4000L // 4 seconds
+                                        val durationMillis = 1000L // 4 seconds
                                         val pollingIntervalMillis = 100L // Poll every 100 ms
                                         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")  // Updated format pattern
                                         val initStartTime = System.currentTimeMillis()
@@ -265,28 +264,35 @@ fun BluetoothScreen(
                                         val performanceData = PerformanceData(performerId.toInt(), initTimestamp, performanceLocation)
 
                                         while (isCollecting) {
-                                            val rawDataList = mutableListOf<String>()
-                                            val bluetoothDataList = mutableListOf<String>()
                                             val startTime = System.currentTimeMillis()
-
                                             val dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault())
+                                            var smallPackage = mutableListOf<String>()
+                                            var largePackage = mutableListOf<String>()
+                                            val seconds = 4
                                             timestamp = dateTime.format(formatter)
 
-                                            while (System.currentTimeMillis() - startTime < durationMillis) {
-                                                // Append bluetooth data from viewModel to the list
-                                                bluetoothDataList.add(viewModel.bluetoothData.toHex())
-                                                rawDataList.add(viewModel.bluetoothData.toString())
+                                            for (i in 1..seconds) {
+                                                val currentSmall = mutableListOf<String>()
+                                                val currentLarge = mutableListOf<String>()
+                                                while (System.currentTimeMillis() - startTime < durationMillis && currentSmall.size < 512 && currentLarge.size < 1) {
+                                                    // Append bluetooth data from viewModel to the list
 
-                                                val byteSize = countBytesFromHex(viewModel.bluetoothData.toHex())
-                                                Log.d("dataSize", "byte size is $byteSize bytes")
+                                                    val hexString = viewModel.bluetoothData.toHex()
 
-                                                // Wait for the polling interval before appending again
-                                                delay(pollingIntervalMillis)
+                                                    val (small, large) = filterPackage(hexString)
+
+                                                    if (currentSmall.size < 512) {
+                                                        val remainingSpace = 512 - currentSmall.size
+                                                        currentSmall.addAll(small.take(remainingSpace))
+                                                    }
+
+                                                    if (currentLarge.size < 1) {
+                                                        currentLarge.addAll(large.take(1 - currentLarge.size))
+                                                    }
+                                                }
+                                                smallPackage.addAll(currentSmall)
+                                                largePackage.addAll(currentLarge)
                                             }
-
-                                            // Concatenate the collected data
-                                            accumulatedData = bluetoothDataList.joinToString("\n")
-                                            accumulatedRawData = rawDataList.joinToString("\n")
 
                                             // Locate the location
                                             fusedLocationClient.lastLocation
@@ -299,11 +305,9 @@ fun BluetoothScreen(
                                                     }
                                                 }
 
-                                            val blobData = BlobData(bluetoothDataList, bluetoothDataList)
+                                            val blobData = BlobData(smallPackage, largePackage)
                                             val performanceRecords = mutableListOf<PerformanceRecords>(PerformanceRecords(recordId.toInt(), timestamp, gpsLatitude, gpsLongitude, gpsAltitude, blobData))
 
-                                            Log.d("dataCollected", accumulatedData)
-                                            Log.d("rawDataCollected", accumulatedRawData)
 
                                             val dataInfo = DataInfo(performanceData, performanceRecords)
                                             Log.d("API", "PostData: $dataInfo")
@@ -322,8 +326,6 @@ fun BluetoothScreen(
                                                 }
                                             })
 
-                                            accumulatedData = ""
-                                            accumulatedRawData = ""
                                         }
                                     }
                                 }
@@ -358,4 +360,14 @@ fun countBytesFromHex(hexString: String): Int {
 
     // Each pair of hex digits (2 characters) represents 1 byte
     return cleanedHex.length / 2
+}
+
+fun filterPackage(hexString: String): Pair<List<String>, List<String>> {
+    val smallRegex = Regex("(aaaa048002[0-9a-f]+?)(?=aaaa)(?!$)")
+    val largeRegex = Regex("(aaaa20[0-9a-f]+?)(?=aaaa)(?!$)")
+
+    val smallMatches = smallRegex.findAll(hexString).map { it.value }.toList()
+    val largeMatches = largeRegex.findAll(hexString).map { it.value }.toList()
+
+    return Pair(smallMatches, largeMatches)
 }
