@@ -232,7 +232,7 @@ fun BluetoothScreen(
                                     scope.launch {
                                         val durationMillis = 4000L // 4 seconds
                                         val pollingIntervalMillis = 500L // Poll every 500 ms
-                                        val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+                                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")  // Updated format pattern
                                         val initStartTime = System.currentTimeMillis()
                                         val initDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(initStartTime), ZoneId.systemDefault())
                                         val initTimestamp = initDateTime.format(formatter)
