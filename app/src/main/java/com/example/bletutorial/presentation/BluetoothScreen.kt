@@ -1,6 +1,7 @@
 package com.example.bletutorial.presentation
 
 import android.bluetooth.BluetoothAdapter
+import android.location.Location
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +45,7 @@ import com.example.bletutorial.presentation.permissions.PermissionUtils
 import com.example.bletutorial.presentation.permissions.SystemBroadcastReceiver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -64,14 +66,15 @@ fun BluetoothScreen(
         }
     }
 
+    lateinit var fusedLocationClient: FusedLocationProviderClient
+
     val permissionState = rememberMultiplePermissionsState(permissions = PermissionUtils.permissions)
     val lifecycleOwner = LocalLifecycleOwner.current
     val bleConnectionState = viewModel.connectionState
     val scope = rememberCoroutineScope()
     var accumulatedData by remember { mutableStateOf("") }
     var accumulatedRawData by remember { mutableStateOf("") }
-    var isCollecting by remember { mutableStateOf(false) } // To track if data collection is active
-    var stopRequested by remember { mutableStateOf(false) }
+    var isCollecting by remember { mutableStateOf(false) }
 
     DisposableEffect(
         key1 = lifecycleOwner,
@@ -165,9 +168,9 @@ fun BluetoothScreen(
                 var performanceLocation by remember { mutableStateOf("Shanghai") }
                 var timestamp by remember { mutableStateOf("") }
 
-                var gpsLatitude by remember { mutableStateOf(40.7128f) }
-                var gpsLongitude by remember { mutableStateOf(40.7128f) }
-                var gpsAltitude by remember { mutableStateOf(40.7128f) }
+                var gpsLatitude by remember { mutableStateOf(0.0) }
+                var gpsLongitude by remember { mutableStateOf(0.0) }
+                var gpsAltitude by remember { mutableStateOf(0.0) }
 
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -278,6 +281,17 @@ fun BluetoothScreen(
                                             // Concatenate the collected data
                                             accumulatedData = bluetoothDataList.joinToString("\n")
                                             accumulatedRawData = rawDataList.joinToString("\n")
+
+                                            // Locate the location
+                                            fusedLocationClient.lastLocation
+                                                .addOnSuccessListener { location: Location? ->
+                                                    if (location != null) {
+                                                        gpsLatitude = location.latitude
+                                                        gpsLongitude = location.longitude
+                                                        gpsAltitude = location.altitude
+
+                                                    }
+                                                }
 
                                             val blobData = BlobData(bluetoothDataList, bluetoothDataList)
                                             val performanceRecords = mutableListOf<PerformanceRecords>(PerformanceRecords(recordId.toInt(), timestamp, gpsLatitude, gpsLongitude, gpsAltitude, blobData))

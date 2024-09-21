@@ -16,9 +16,9 @@ data class PerformanceData (
 data class PerformanceRecords (
     @SerializedName("record_id") val recordID: Int?,
     @SerializedName("timestamp") val timestamp: String?,
-    @SerializedName("gps_latitude") val gpsLatitude: Float?,
-    @SerializedName("gps_longitude") val gpsLongitude: Float?,
-    @SerializedName("gps_altitude") val gpsAltitude: Float?,
+    @SerializedName("gps_latitude") val gpsLatitude: Double?,
+    @SerializedName("gps_longitude") val gpsLongitude: Double?,
+    @SerializedName("gps_altitude") val gpsAltitude: Double?,
     @SerializedName("blob_data") val blobData: BlobData?
 )
 
