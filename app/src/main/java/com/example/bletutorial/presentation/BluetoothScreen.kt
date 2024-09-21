@@ -375,10 +375,9 @@ fun BluetoothScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f) // Takes up available space
                             .heightIn(max = 30.dp)
                     ) {
-                        items(dataList) { dataInfo ->
+                        items(dataList ?: emptyList()) { dataInfo ->
                             DataInfoItem(dataInfo = dataInfo, onResendClick = { sendAPI(dataInfo) })
                         }
                     }
@@ -451,7 +450,7 @@ fun DeviceItem(device: BluetoothDevice, onConnectClick: (BluetoothDevice) -> Uni
 
 @Composable
 fun DataInfoItem(dataInfo: DataInfo, onResendClick: () -> Unit) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
