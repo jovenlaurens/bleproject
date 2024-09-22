@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,10 +31,10 @@ fun StartScreen(
             modifier = Modifier
                 .size(150.dp)
                 .clip(CircleShape)
-                .background(Color.Blue, CircleShape)
+                .background(ButtonDefaults.buttonColors().backgroundColor(true).value, CircleShape)
                 .clickable {
-                    navController.navigate(Screen.BluetoothScreen.route){
-                        popUpTo(Screen.StartScreen.route){
+                    navController.navigate(Screen.BluetoothScreen.route) {
+                        popUpTo(Screen.StartScreen.route) {
                             inclusive = true
                         }
                     }

@@ -151,7 +151,7 @@ fun BluetoothScreen(
                                 text = viewModel.initializingMessage!!
                             )
                         }
-                        if (viewModel.devices != null) {
+                        if (viewModel.devices != null &&  viewModel.devices!!.size > 0) {
                             isFound = true
                         }
                     }

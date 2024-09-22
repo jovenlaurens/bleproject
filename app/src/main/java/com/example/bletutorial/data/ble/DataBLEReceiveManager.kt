@@ -19,6 +19,7 @@ import com.example.bletutorial.data.DataResult
 import com.example.bletutorial.util.Resource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -64,7 +65,7 @@ class DataBLEReceiveManager @Inject constructor(
                 coroutineScope.launch {
                     data.emit(Resource.Loading(message = "Discovering devices"))
                 }
-            } else {
+            } else if (bleDevices.size > 0) {
                 coroutineScope.launch {
                     data.emit(Resource.Loading(data = DataResult(
                         bleDevices,
@@ -72,6 +73,7 @@ class DataBLEReceiveManager @Inject constructor(
                         ByteArray(0),
                         ConnectionState.Disconnected
                     ), message = "Discovered devices!"))
+                    delay(1000L)
                 }
             }
 
