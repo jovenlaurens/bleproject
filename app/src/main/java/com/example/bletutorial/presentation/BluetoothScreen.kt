@@ -258,6 +258,12 @@ fun BluetoothScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    LazyColumn{
+                        items(dataList) { dataInfo ->
+                            DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
+                        }
+                    }
+
                     if (isCollecting) {
                         Text(
                             text = "Timestamp: $timestamp",
@@ -373,12 +379,6 @@ fun BluetoothScreen(
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-
-                    LazyColumn{
-                        items(dataList) { dataInfo ->
-                            DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
-                        }
-                    }
 
                 }
 
