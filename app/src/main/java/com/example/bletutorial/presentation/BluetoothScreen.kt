@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -90,10 +91,6 @@ fun BluetoothScreen(
         // Ensure only one device connects at a time
         Log.d("BluetoothDeviceList", "Connecting to device: ${device.name}")
         viewModel.connectToDevice(device)
-    }
-
-    val resendClick: (DataInfo) -> Unit = { dataInfo ->
-        sendAPI(dataInfo)
     }
 
     DisposableEffect(
@@ -216,7 +213,11 @@ fun BluetoothScreen(
                 var gpsLongitude by remember { mutableStateOf(0.0) }
                 var gpsAltitude by remember { mutableStateOf(0.0) }
 
-                var dataList by remember { mutableStateOf(listOf<DataInfo>()) }
+                val dataList = remember { mutableStateListOf<DataInfo>() }
+
+                val resendClick: (DataInfo) -> Unit = { dataInfo ->
+                    sendAPI(dataInfo, dataList)
+                }
 
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -280,7 +281,6 @@ fun BluetoothScreen(
                             onClick = {
                                 isCollecting = false
                                 Log.d("test", "Recording data stopped")
-                                dataList = mutableListOf()
                             },
                             modifier = Modifier.fillMaxWidth(0.5f),
                             enabled = isCollecting // Enable the button only when collecting
@@ -423,11 +423,12 @@ fun filterPackage(hexString: String): Pair<List<String>, List<String>> {
     return Pair(smallMatches, largeMatches)
 }
 
-fun sendAPI (dataInfo: DataInfo) {
+fun sendAPI (dataInfo: DataInfo, dataList: MutableList<DataInfo>) {
     service.sendData(dataInfo).enqueue(object : retrofit2.Callback<Void> {
         override fun onResponse(call: retrofit2.Call<Void>, response: retrofit2.Response<Void>) {
             if (response.isSuccessful) {
                 Log.d("API", "Post successful!")
+                dataList.remove(dataInfo)
             } else {
                 Log.d("API", "Error: ${response.code()}")
             }
