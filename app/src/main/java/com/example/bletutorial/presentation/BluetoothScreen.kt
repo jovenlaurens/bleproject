@@ -475,7 +475,7 @@ fun DataInfoItem(dataInfo: DataInfo, onResendClick: (DataInfo) -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
-            Text(text = "Timestamp: ${dataInfo.performanceData?.performanceTime}")
+            Text(text = "Timestamp: ${dataInfo.performanceRecords?.firstOrNull()?.timestamp ?: "No timestamp available"}")
         }
 
         // Button to resend the API for this specific item
