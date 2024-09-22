@@ -357,11 +357,24 @@ fun BluetoothScreen(
 
 
                                             val dataInfo = DataInfo(performanceData, performanceRecords)
-                                            dataList += dataInfo
                                             Log.d("Data", "DataSize: ${dataList.size}")
                                             Log.d("API", "PostData: $dataInfo")
 
-                                            sendAPI(dataInfo)
+                                            service.sendData(dataInfo).enqueue(object : retrofit2.Callback<Void> {
+                                                override fun onResponse(call: retrofit2.Call<Void>, response: retrofit2.Response<Void>) {
+                                                    if (response.isSuccessful) {
+                                                        Log.d("API", "Post successful!")
+                                                    } else {
+                                                        Log.d("API", "Error: ${response.code()}")
+                                                        dataList += dataInfo
+                                                    }
+                                                }
+
+                                                override fun onFailure(call: retrofit2.Call<Void>, t: Throwable) {
+                                                    Log.d("API", "Request failed: ${t.message}")
+                                                    dataList += dataInfo
+                                                }
+                                            })
 
                                         }
                                     }
@@ -377,7 +390,7 @@ fun BluetoothScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp) // Set max height, can change based on your design needs
+                            .height(300.dp) // Set max height, can change based on your design needs
                     ) {
                         items(dataList) { dataInfo ->
                             DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
