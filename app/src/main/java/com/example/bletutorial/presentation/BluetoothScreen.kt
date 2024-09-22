@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -289,17 +288,6 @@ fun BluetoothScreen(
                             Text("Stop")
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 30.dp)
-                        ) {
-                            items(dataList ?: emptyList()) { dataInfo ->
-                                DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
-                            }
-                        }
                     } else {
                         Button(
                             onClick = {
@@ -383,16 +371,12 @@ fun BluetoothScreen(
                         ) {
                             Text("Record Data")
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 30.dp)
-                        ) {
-                            items(dataList ?: emptyList()) { dataInfo ->
-                                DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
-                            }
+                    LazyColumn{
+                        items(dataList) { dataInfo ->
+                            DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
                         }
                     }
 
@@ -474,7 +458,9 @@ fun DataInfoItem(dataInfo: DataInfo, onResendClick: (DataInfo) -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = "Timestamp: ${dataInfo.performanceData?.performanceTime}")
+        Column {
+            Text(text = "Timestamp: ${dataInfo.performanceData?.performanceTime}")
+        }
 
         // Button to resend the API for this specific item
         Button(onClick = {onResendClick(dataInfo)}) {
