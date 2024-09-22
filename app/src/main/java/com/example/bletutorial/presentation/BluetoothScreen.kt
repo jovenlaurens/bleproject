@@ -216,7 +216,7 @@ fun BluetoothScreen(
                 var gpsLongitude by remember { mutableStateOf(0.0) }
                 var gpsAltitude by remember { mutableStateOf(0.0) }
 
-                var dataList = mutableListOf<DataInfo>()
+                var dataList by remember { mutableStateOf(listOf<DataInfo>()) }
 
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -257,12 +257,6 @@ fun BluetoothScreen(
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
-
-                    LazyColumn{
-                        items(dataList) { dataInfo ->
-                            DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
-                        }
-                    }
 
                     if (isCollecting) {
                         Text(
@@ -363,7 +357,7 @@ fun BluetoothScreen(
 
 
                                             val dataInfo = DataInfo(performanceData, performanceRecords)
-                                            dataList.add(dataInfo)
+                                            dataList += dataInfo
                                             Log.d("Data", "DataSize: ${dataList.size}")
                                             Log.d("API", "PostData: $dataInfo")
 
@@ -380,6 +374,15 @@ fun BluetoothScreen(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp) // Set max height, can change based on your design needs
+                    ) {
+                        items(dataList) { dataInfo ->
+                            DataInfoItem(dataInfo = dataInfo, onResendClick = { resendClick(dataInfo) })
+                        }
+                    }
                 }
 
             }else if(bleConnectionState == ConnectionState.Disconnected){
