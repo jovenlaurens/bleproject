@@ -3,5 +3,9 @@
     <domain-config cleartextTrafficPermitted="true">
         <!-- This allows cleartext traffic for all domains -->
         <domain includeSubdomains="true">121.36.102.29</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
     </domain-config>
 </network-security-config>

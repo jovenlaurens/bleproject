@@ -2,8 +2,12 @@ package com.example.bletutorial.presentation
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.location.Location
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,12 +52,12 @@ import com.example.bletutorial.api.PerformanceData
 import com.example.bletutorial.api.PerformanceRecords
 import com.example.bletutorial.api.service
 import com.example.bletutorial.data.ConnectionState
-import com.example.bletutorial.local.FileHelper
 import com.example.bletutorial.presentation.permissions.PermissionUtils
 import com.example.bletutorial.presentation.permissions.SystemBroadcastReceiver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
+import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -94,7 +98,15 @@ fun BluetoothScreen(
         viewModel.connectToDevice(device)
     }
 
-    val fileHelper = FileHelper(context)
+    var dataInfo by remember { mutableStateOf<DataInfo?>(null) }
+
+    val createFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        uri?.let {
+            writeDataToFile(context, it, dataInfo)
+        }
+    }
 
     DisposableEffect(
         key1 = lifecycleOwner,
@@ -359,25 +371,25 @@ fun BluetoothScreen(
                                             val performanceRecords = mutableListOf<PerformanceRecords>(PerformanceRecords(recordId.toInt(), timestamp, gpsLatitude, gpsLongitude, gpsAltitude, blobData))
 
 
-                                            val dataInfo = DataInfo(performanceData, performanceRecords)
+                                            dataInfo = DataInfo(performanceData, performanceRecords)
                                             Log.d("Data", "DataSize: ${dataList.size}")
                                             Log.d("API", "PostData: $dataInfo")
 
-                                            fileHelper.saveDataInfoAsJson("$timestamp.json", dataInfo)
+                                            createFileLauncher.launch("$timestamp.json")
 
-                                            service.sendData(dataInfo).enqueue(object : retrofit2.Callback<Void> {
+                                            service.sendData(dataInfo!!).enqueue(object : retrofit2.Callback<Void> {
                                                 override fun onResponse(call: retrofit2.Call<Void>, response: retrofit2.Response<Void>) {
                                                     if (response.isSuccessful) {
                                                         Log.d("API", "Post successful!")
                                                     } else {
                                                         Log.d("API", "Error: ${response.code()}")
-                                                        dataList += dataInfo
+                                                        dataList += dataInfo!!
                                                     }
                                                 }
 
                                                 override fun onFailure(call: retrofit2.Call<Void>, t: Throwable) {
                                                     Log.d("API", "Request failed: ${t.message}")
-                                                    dataList += dataInfo
+                                                    dataList += dataInfo!!
                                                 }
                                             })
 
@@ -411,6 +423,19 @@ fun BluetoothScreen(
                 }
             }
         }
+    }
+}
+
+fun writeDataToFile(context: Context, uri: Uri, dataInfo: DataInfo?) {
+    try {
+        context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+            val json = Gson().toJson(dataInfo) // Your dataInfo object serialized to JSON
+            outputStream.write(json.toByteArray())
+        }
+        Log.d("FileHelper", "File saved successfully")
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Log.e("FileHelper", "Failed to save file: ${e.message}")
     }
 }
 
