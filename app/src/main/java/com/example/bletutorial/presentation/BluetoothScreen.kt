@@ -424,13 +424,13 @@ fun BluetoothScreen(
 fun writeDataToFile(context: Context, fileName: String, dataInfo: DataInfo?) {
     val contentResolver = context.contentResolver
     val gson = Gson()
-    val jsonString = gson.toJson(dataInfo) // Convert dataInfo to JSON string
+    val jsonString = gson.toJson(dataInfo)
 
     val contentValues = ContentValues().apply {
-        put(MediaStore.Downloads.DISPLAY_NAME, fileName) // File name
-        put(MediaStore.Downloads.MIME_TYPE, "application/json") // MIME type
+        put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+        put(MediaStore.Downloads.MIME_TYPE, "application/json")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS) // Downloads directory
+            put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/NANO")
         }
     }
 
@@ -442,7 +442,7 @@ fun writeDataToFile(context: Context, fileName: String, dataInfo: DataInfo?) {
             // Open the file output stream and write the data
             contentResolver.openOutputStream(uri)?.use { outputStream ->
                 outputStream.write(jsonString.toByteArray())
-                Log.d("FileHelper", "File saved successfully at: $uri")
+                Log.d("FileHelper", "File saved successfully ($fileName.json)")
             }
         } catch (e: Exception) {
             e.printStackTrace()
