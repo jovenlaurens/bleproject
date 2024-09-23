@@ -51,20 +51,24 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+
+
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             permissionLauncher.launch(
                 arrayOf(
                     Manifest.permission.BLUETOOTH_SCAN,
                     Manifest.permission.BLUETOOTH_CONNECT,
                     Manifest.permission.ACCESS_FINE_LOCATION, // Request location permissions
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
                 )
             )
         } else {
             permissionLauncher.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
                 )
             )
         }

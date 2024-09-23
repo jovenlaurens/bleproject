@@ -48,6 +48,7 @@ import com.example.bletutorial.api.PerformanceData
 import com.example.bletutorial.api.PerformanceRecords
 import com.example.bletutorial.api.service
 import com.example.bletutorial.data.ConnectionState
+import com.example.bletutorial.local.FileHelper
 import com.example.bletutorial.presentation.permissions.PermissionUtils
 import com.example.bletutorial.presentation.permissions.SystemBroadcastReceiver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -92,6 +93,8 @@ fun BluetoothScreen(
         Log.d("BluetoothDeviceList", "Connecting to device: ${device.name}")
         viewModel.connectToDevice(device)
     }
+
+    val fileHelper = FileHelper(context)
 
     DisposableEffect(
         key1 = lifecycleOwner,
@@ -359,6 +362,8 @@ fun BluetoothScreen(
                                             val dataInfo = DataInfo(performanceData, performanceRecords)
                                             Log.d("Data", "DataSize: ${dataList.size}")
                                             Log.d("API", "PostData: $dataInfo")
+
+                                            fileHelper.saveDataInfoAsJson("$timestamp.json", dataInfo)
 
                                             service.sendData(dataInfo).enqueue(object : retrofit2.Callback<Void> {
                                                 override fun onResponse(call: retrofit2.Call<Void>, response: retrofit2.Response<Void>) {

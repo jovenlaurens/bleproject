@@ -4,7 +4,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 val retrofit = Retrofit.Builder()
-    .baseUrl("https://121.36.102.29:5000")
+    .baseUrl("http://121.36.102.29:5000")
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 
