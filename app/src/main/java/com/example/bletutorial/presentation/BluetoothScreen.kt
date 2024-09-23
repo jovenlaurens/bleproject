@@ -2,8 +2,12 @@ package com.example.bletutorial.presentation
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.ContentValues
 import android.content.Context
 import android.location.Location
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -57,7 +61,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -419,13 +422,34 @@ fun BluetoothScreen(
 }
 
 fun writeDataToFile(context: Context, fileName: String, dataInfo: DataInfo?) {
-    val file = File(context.getExternalFilesDir(null), fileName)
-    try {
-        file.writeText(Gson().toJson(dataInfo)) // Save dataInfo as JSON
-        Log.d("FileHelper", "File saved successfully at: ${file.absolutePath}")
-    } catch (e: Exception) {
-        e.printStackTrace()
-        Log.e("FileHelper", "Error saving file: ${e.message}")
+    val contentResolver = context.contentResolver
+    val gson = Gson()
+    val jsonString = gson.toJson(dataInfo) // Convert dataInfo to JSON string
+
+    val contentValues = ContentValues().apply {
+        put(MediaStore.Downloads.DISPLAY_NAME, fileName) // File name
+        put(MediaStore.Downloads.MIME_TYPE, "application/json") // MIME type
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS) // Downloads directory
+        }
+    }
+
+    // Insert the file into the Downloads directory using MediaStore
+    val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+    if (uri != null) {
+        try {
+            // Open the file output stream and write the data
+            contentResolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.write(jsonString.toByteArray())
+                Log.d("FileHelper", "File saved successfully at: $uri")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("FileHelper", "Error saving file: ${e.message}")
+        }
+    } else {
+        Log.e("FileHelper", "Failed to create file in Downloads directory")
     }
 }
 
